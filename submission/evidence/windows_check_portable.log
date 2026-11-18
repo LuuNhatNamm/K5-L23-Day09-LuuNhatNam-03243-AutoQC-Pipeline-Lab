@@ -1,0 +1,9 @@
+Kiểm tra đầy đủ bằng checker gốc + 2 sửa lỗi tương thích:
+- Đường dẫn so với danh sách bảo vệ: POSIX (/).
+- Hash manifest: byte gốc, khớp cách script train ghi nhận.
+Giữ nguyên file đề, JSON train và mọi điều kiện kiểm tra.
+pytest: 79 passed, 1 warning in 48.06s
+kết luận pipeline: Hold - Còn 38/202 ảnh có cảnh báo chưa duyệt (18.81%), đạt hoặc vượt ngưỡng 10.00%.
+
+
+0 lỗi, 0 cảnh báo

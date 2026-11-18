@@ -1,0 +1,9 @@
+pytest: 79 passed, 1 warning in 55.43s
+kết luận pipeline: Hold - Còn 38/202 ảnh có cảnh báo chưa duyệt (18.81%), đạt hoặc vượt ngưỡng 10.00%.
+
+LỖI: pipeline\calibrate.py nhắc tới 'MANIFEST': code kiểm không được đọc đáp án/tập test (duy nhất duplicates.py dùng reference_dirs từ cfg)
+LỖI: pipeline\calibrate.py nhắc tới 'data/calib': code kiểm không được đọc đáp án/tập test (duy nhất duplicates.py dùng reference_dirs từ cfg)
+LỖI: clean_seed0.json: manifest_sha1 không khớp export hiện tại (train trên dữ liệu khác?)
+LỖI: clean_seed1.json: manifest_sha1 không khớp export hiện tại (train trên dữ liệu khác?)
+
+4 lỗi, 0 cảnh báo

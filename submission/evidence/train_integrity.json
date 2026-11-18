@@ -1,0 +1,30 @@
+{
+  "checks": {
+    "four_expected_runs": true,
+    "all_configs_match_exact_bytes": true,
+    "clean_manifests_match_exact_bytes": true,
+    "uploaded_manifest_equals_current_bytes": true,
+    "same_training_parameters": true
+  },
+  "source_archive": "day09_results_03243.zip",
+  "source_archive_sha256": "a9c876337f39d0248dc790edcf818c6be1c3c0907317e588febe5c4fe824eae0",
+  "manifest_sha1_exact_bytes": "93b4684870d984139b16e76da546a4ae513715d7",
+  "manifest_sha1_after_CRLF_normalization": "3cae0138cfcf7c649976b263b590cfa643bf3081",
+  "manifest_CRLF_count": 491,
+  "checker_issue": "train_compare.py hashes exact bytes; check_submission.py normalizes CRLF before hashing. The two clean result warnings are due to this inconsistency, not a changed manifest.",
+  "full_check_log": "windows_check_full.log",
+  "full_checker_errors": 4,
+  "full_checker_exit_code": 1,
+  "unit_tests": "79 passed, 1 warning",
+  "colab_core_check": "79 passed; 0 errors, 1 warning (training skipped before training)",
+  "portable_check": {
+    "command": "python scripts/check_submission_portable.py",
+    "errors": 0,
+    "warnings": 0,
+    "exit_code": 0,
+    "pytest": "79 passed, 1 warning",
+    "log": "windows_check_portable.log",
+    "original_checker_unchanged": true,
+    "four_training_jsons_unchanged_from_archive": true
+  }
+}

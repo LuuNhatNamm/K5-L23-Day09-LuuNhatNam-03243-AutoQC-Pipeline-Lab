@@ -1,0 +1,4 @@
+# Preserve exported bytes: training provenance hashes the original manifest
+# and the manifest records hashes of these labels, including line endings.
+clean_v1/manifest.json -text
+clean_v1/labels/*.txt -text

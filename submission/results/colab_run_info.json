@@ -1,0 +1,8 @@
+{
+  "torch": "2.14.1+cu130",
+  "ultralytics": "8.4.214",
+  "gpu": "Tesla T4",
+  "config_sha1": "24c1d6bc23350037f3af1fa20c75691608648aa2",
+  "manifest_sha1": "93b4684870d984139b16e76da546a4ae513715d7",
+  "clean_decision": "Hold"
+}

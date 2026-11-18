@@ -1,0 +1,39 @@
+{
+  "date": "2026-11-18",
+  "criteria_source": "C:/Users/Admin/Downloads/K5-L23-Day09-AutoQC-Pipeline-Lab.html",
+  "main_verdict": {
+    "decision": "Hold",
+    "n_errors": 0,
+    "n_warn_images": 38,
+    "n_images": 202,
+    "warn_ratio": 0.1881,
+    "reasons": [
+      "Còn 38/202 ảnh có cảnh báo chưa duyệt (18.81%), đạt hoặc vượt ngưỡng 10.00%."
+    ]
+  },
+  "reviewed_simulated": 80,
+  "n_raw_images": 224,
+  "n_export_labels": 202,
+  "n_manifest_images": 202,
+  "config_sha1_matches": true,
+  "review_sim_sha1_matches": true,
+  "export_verdict_matches": true,
+  "export_label_hashes_match": true,
+  "gate_no_review": {
+    "decision": "Rework",
+    "n_errors": 6,
+    "n_warn_images": 112,
+    "n_images": 202,
+    "warn_ratio": 0.5545,
+    "reasons": [
+      "Còn 6 lỗi bắt buộc cần xử lý."
+    ]
+  },
+  "gate_no_review_exit": 20,
+  "gate_test_export_exists": false,
+  "visual_review_student_confirmation": "pending; ten raw/clean image pairs prepared in work/cp4_review",
+  "training_status": "not_started; personalized upload notebook prepared",
+  "github_manifest_at_audit": "not_present on origin/main",
+  "unit_tests": "79 passed, 1 warning; see windows_check_core.log",
+  "windows_checker": "2 template path-separator false positives; confirmed by supplied HTML"
+}
