@@ -25,5 +25,43 @@ from ..common import ERROR, WARN, Issue, iou_xywh, parse_yolo_line  # noqa: F401
 
 
 def run(ds, cfg):
-    # TODO: duyệt từng file nhãn, từng dòng
-    raise NotImplementedError("check label_format chưa làm")
+    issues = []
+    limits = cfg["label_format"]
+    for path in ds.label_files():
+        stem = path.stem
+        previous = []
+        size = ds.image_size(stem)
+        for line_no, text in ds.read_label_lines(stem) or []:
+            def report(code, severity, message, extra=None):
+                issues.append(Issue("label_format", severity, code, stem,
+                                    message, line_no, extra or {}))
+
+            try:
+                class_id, cx, cy, w, h = parse_yolo_line(text)
+            except (ValueError, OverflowError) as exc:
+                report("BAD_FORMAT", ERROR, str(exc))
+                continue
+            if not 0 <= class_id < len(ds.classes):
+                report("BAD_CLASS_ID", ERROR, f"ID lớp không hợp lệ: {class_id}")
+                continue
+            if w <= 0 or h <= 0:
+                report("BOX_ZERO", ERROR, "Chiều rộng hoặc chiều cao không dương")
+                continue
+
+            box = (cx, cy, w, h)
+            overflow = max(0.0, w / 2 - cx, cx + w / 2 - 1,
+                           h / 2 - cy, cy + h / 2 - 1)
+            if overflow > limits["overflow_tol"]:
+                report("BOX_OUT_OF_IMAGE", ERROR, "Box vượt biên ảnh",
+                       {"overflow": overflow})
+            if any(old_class == class_id and
+                   iou_xywh(box, old_box) > limits["dup_box_iou"]
+                   for old_class, old_box in previous):
+                report("DUP_BOX", ERROR, "Box trùng với dòng trước cùng lớp")
+            previous.append((class_id, box))
+
+            if size is not None and min(w * size[0], h * size[1]) < limits["min_box_px"]:
+                report("BOX_TINY", WARN, "Cạnh ngắn của box dưới ngưỡng pixel")
+            if w * h > limits["max_box_frac"]:
+                report("BOX_HUGE", WARN, "Diện tích box vượt ngưỡng")
+    return issues
