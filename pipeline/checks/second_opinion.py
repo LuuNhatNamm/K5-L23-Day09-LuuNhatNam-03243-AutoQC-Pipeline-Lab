@@ -40,5 +40,129 @@ from ..model_cache import get_preds  # noqa: F401
 
 
 def run(ds, cfg, preds=None):
-    # TODO
-    raise NotImplementedError("check second_opinion chưa làm")
+    if preds is None:
+        preds = get_preds(ds, cfg, "checker")
+
+    limits = cfg["second_opinion"]
+    issues = []
+
+    for image_path in ds.image_files():
+        stem = image_path.stem
+        lines = ds.read_label_lines(stem)
+
+        # Không có file nhãn hoặc không có dữ liệu dự đoán thì bỏ qua.
+        if lines is None or stem not in preds:
+            continue
+
+        size = ds.image_size(stem)
+        if size is None:
+            continue
+        width, height = size
+
+        # Giữ số dòng gốc để báo lỗi chính xác.
+        labels = []
+        for line_no, text in lines:
+            try:
+                class_id, cx, cy, w, h = parse_yolo_line(text)
+            except (ValueError, OverflowError):
+                continue
+
+            if not 0 <= class_id < len(ds.classes):
+                continue
+            if w <= 0 or h <= 0:
+                continue
+
+            labels.append((line_no, class_id, (cx, cy, w, h)))
+
+        predictions = preds[stem]
+
+        def report(code, message, line=None, extra=None):
+            issues.append(
+                Issue(
+                    check="second_opinion",
+                    severity=WARN,
+                    code=code,
+                    image=stem,
+                    message=message,
+                    line=line,
+                    extra=extra or {},
+                )
+            )
+
+        # 1. So từng dự đoán đáng tin với nhãn hiện có.
+        for prediction in predictions:
+            pred_class, confidence, cx, cy, w, h = prediction
+            area_px = w * width * h * height
+
+            if confidence < limits["conf"]:
+                continue
+            if area_px < limits["min_area_px"]:
+                continue
+
+            pred_box = (cx, cy, w, h)
+            candidates = []
+
+            for _, label_class, label_box in labels:
+                overlap = iou_xywh(pred_box, label_box)
+                if overlap >= limits["iou_missing"]:
+                    candidates.append((label_class, overlap))
+
+            if not candidates:
+                report(
+                    "POSSIBLE_MISSING",
+                    "Model thấy đối tượng nhưng không có box nhãn khớp",
+                    extra={"conf": confidence},
+                )
+                continue
+
+            same_class = [
+                overlap
+                for label_class, overlap in candidates
+                if label_class == pred_class
+            ]
+
+            # Ưu tiên nhãn cùng lớp nếu đã phủ đối tượng.
+            if same_class:
+                best_iou = max(same_class)
+                if best_iou < limits["iou_loose"]:
+                    report(
+                        "POSSIBLE_LOOSE_BOX",
+                        "Nhãn cùng lớp nhưng box có thể lỏng hoặc lệch",
+                        extra={"conf": confidence, "iou": best_iou},
+                    )
+                continue
+
+            best_iou = max(overlap for _, overlap in candidates)
+            if best_iou >= limits["iou_match"]:
+                report(
+                    "POSSIBLE_WRONG_CLASS",
+                    "Box khớp vị trí nhưng lớp khác dự đoán của model",
+                    extra={"conf": confidence, "iou": best_iou},
+                )
+
+        # 2. Kiểm tra nhãn có được dự đoán nào hỗ trợ không.
+        # Dùng fp_conf riêng và KHÔNG lọc diện tích dự đoán.
+        fp_predictions = [
+            prediction
+            for prediction in predictions
+            if prediction[1] >= limits["fp_conf"]
+        ]
+
+        for line_no, _, label_box in labels:
+            best_iou = max(
+                (
+                    iou_xywh(label_box, prediction[2:])
+                    for prediction in fp_predictions
+                ),
+                default=0.0,
+            )
+
+            if best_iou < limits["iou_missing"]:
+                report(
+                    "POSSIBLE_FALSE_POS",
+                    "Box nhãn không khớp dự đoán nào đủ confidence",
+                    line=line_no,
+                    extra={"iou": best_iou},
+                )
+
+    return issues
